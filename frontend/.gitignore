@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+.angular/
+
+# Environment files
+src/environments/environment*.ts
+!src/environments/environment.ts
+
+# IDE / Editor
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Cache
+.npm
+.eslintcache
+.stylelintcache
+
+# Testing
+coverage/
+
+# Misc
+*.tgz
+*.zip
+
