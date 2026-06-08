@@ -23,9 +23,9 @@ import { AuthService } from '../../services/auth.service';
       </div>
 
       <!-- Create Account Section -->
-      <mat-card class="create-account-card">
+      <mat-card class="create-account-card" *ngIf="accounts.length === 0">
         <mat-card-header>
-          <mat-card-title>Create New Account</mat-card-title>
+          <mat-card-title>Create Bank Account</mat-card-title>
         </mat-card-header>
         <mat-card-content>
           <div class="create-form">
@@ -61,7 +61,7 @@ import { AuthService } from '../../services/auth.service';
             </ng-container>
             <ng-container matColumnDef="balance">
               <th mat-header-cell *matHeaderCellDef>Balance</th>
-              <td mat-cell *matCellDef="let acc">\${{ acc.balance | number:'1.2-2' }}</td>
+              <td mat-cell *matCellDef="let acc">₹{{ acc.balance | number:'1.2-2' }}</td>
             </ng-container>
             <ng-container matColumnDef="status">
               <th mat-header-cell *matHeaderCellDef>Status</th>
@@ -71,17 +71,7 @@ import { AuthService } from '../../services/auth.service';
                 </span>
               </td>
             </ng-container>
-            <ng-container matColumnDef="actions">
-              <th mat-header-cell *matHeaderCellDef>Actions</th>
-              <td mat-cell *matCellDef="let acc">
-                <button mat-icon-button color="warn" *ngIf="acc.active" (click)="deactivate(acc.id)" matTooltip="Deactivate">
-                  <mat-icon>block</mat-icon>
-                </button>
-                <button mat-icon-button color="primary" *ngIf="!acc.active" (click)="activate(acc.id)" matTooltip="Activate">
-                  <mat-icon>check_circle</mat-icon>
-                </button>
-              </td>
-            </ng-container>
+
             <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
             <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
           </table>
@@ -102,7 +92,7 @@ export class AccountsComponent implements OnInit {
   accounts: any[] = [];
   aadharNumber = '';
   panNumber = '';
-  displayedColumns = ['accountNumber', 'type', 'balance', 'status', 'actions'];
+  displayedColumns = ['accountNumber', 'type', 'balance', 'status'];
 
   constructor(private accountService: AccountService, private auth: AuthService) {}
 
@@ -153,17 +143,5 @@ export class AccountsComponent implements OnInit {
     });
   }
 
-  activate(id: number) {
-    this.accountService.activateAccount(id).subscribe({
-      next: () => { alert('Account activated successfully!'); this.loadAccounts(); },
-      error: (err: any) => { alert(err.error?.message || 'Failed to activate account'); }
-    });
-  }
 
-  deactivate(id: number) {
-    this.accountService.deactivateAccount(id).subscribe({
-      next: () => { alert('Account deactivated successfully!'); this.loadAccounts(); },
-      error: (err: any) => { alert(err.error?.message || 'Failed to deactivate account'); }
-    });
-  }
 }

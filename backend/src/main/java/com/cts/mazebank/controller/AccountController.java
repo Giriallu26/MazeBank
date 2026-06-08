@@ -53,4 +53,5 @@ public class AccountController {
     public ResponseEntity<Account> deactivateAccount(@PathVariable Long id) {
         return ResponseEntity.ok(accountService.deactivateAccount(id));
     }
+
 }

@@ -13,8 +13,8 @@ import { AuthService } from '../../services/auth.service';
   imports: [CommonModule, RouterModule, MatToolbarModule, MatButtonModule, MatIconModule, MatMenuModule],
   template: `
     <mat-toolbar color="primary" class="navbar" *ngIf="auth.isLoggedIn()">
-      <mat-icon class="logo-icon">account_balance</mat-icon>
-      <span class="brand">MazeBank</span>
+      <mat-icon class="logo-icon" [routerLink]="auth.getRole() === 'ADMIN' ? '/admin-dashboard' : '/dashboard'" style="cursor:pointer">account_balance</mat-icon>
+      <span class="brand" [routerLink]="auth.getRole() === 'ADMIN' ? '/admin-dashboard' : '/dashboard'" style="cursor:pointer">MazeBank</span>
 
       <span class="spacer"></span>
 
@@ -36,9 +36,7 @@ import { AuthService } from '../../services/auth.service';
 
       <!-- Admin Navigation -->
       <ng-container *ngIf="auth.getRole() === 'ADMIN'">
-        <button mat-button routerLink="/admin" routerLinkActive="active-link">
-          <mat-icon>admin_panel_settings</mat-icon> Admin Dashboard
-        </button>
+        
       </ng-container>
 
       <!-- User menu -->

@@ -23,4 +23,8 @@ export class AdminService {
   getAllTransactions(): Observable<any> {
     return this.http.get(`${this.baseUrl}/transactions`);
   }
+
+  getFilteredTransactions(params: any): Observable<any> {
+    return this.http.get(`${this.baseUrl}/transactions/filter`, { params });
+  }
 }

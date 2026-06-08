@@ -9,6 +9,8 @@ import com.cts.mazebank.service.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,6 +47,20 @@ public class AdminController {
     @GetMapping("/transactions")
     public ResponseEntity<List<Transaction>> getAllTransactions() {
         return ResponseEntity.ok(transactionService.getAllTransactions());
+    }
+
+    // Get filtered transactions
+    @GetMapping("/transactions/filter")
+    public ResponseEntity<List<Transaction>> getFilteredTransactions(
+            @RequestParam(required = false) String transactionType,
+            @RequestParam(required = false) String accountNumber,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate) {
+        LocalDateTime start = (startDate != null && !startDate.isEmpty()) ? LocalDate.parse(startDate).atStartOfDay() : null;
+        LocalDateTime end = (endDate != null && !endDate.isEmpty()) ? LocalDate.parse(endDate).atTime(23, 59, 59) : null;
+        String type = (transactionType != null && !transactionType.isEmpty()) ? transactionType : null;
+        String accNum = (accountNumber != null && !accountNumber.isEmpty()) ? accountNumber : null;
+        return ResponseEntity.ok(transactionService.getFilteredTransactions(type, accNum, start, end));
     }
 
     // Get dashboard summary

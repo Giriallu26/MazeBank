@@ -31,17 +31,12 @@ import { AuthService } from '../../services/auth.service';
           <mat-card class="tab-card">
             <mat-card-content>
               <div class="transaction-form">
-                <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>Select Account</mat-label>
-                  <mat-select [(ngModel)]="depositAccountId">
-                    <mat-option *ngFor="let acc of accounts" [value]="acc.id">
-                      {{ acc.accountNumber }} ({{ acc.accountType }}) - \${{ acc.balance | number:'1.2-2' }}
-                    </mat-option>
-                  </mat-select>
-                </mat-form-field>
+                <div class="account-info" *ngIf="account">
+                  <span class="account-label">Account:</span> {{ account.accountNumber }} ({{ account.accountType }}) - Balance: ₹{{ account.balance | number:'1.2-2' }}
+                </div>
                 <mat-form-field appearance="outline" floatLabel="always" class="full-width">
                   <mat-label>Amount</mat-label>
-                  <span matTextPrefix>$&nbsp;</span>
+                  <span matTextPrefix>₹&nbsp;</span>
                   <input matInput type="number" placeholder="0.00" [(ngModel)]="depositAmount">
                 </mat-form-field>
                 <button mat-raised-button color="primary" (click)="deposit()">
@@ -57,17 +52,12 @@ import { AuthService } from '../../services/auth.service';
           <mat-card class="tab-card">
             <mat-card-content>
               <div class="transaction-form">
-                <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>Select Account</mat-label>
-                  <mat-select [(ngModel)]="withdrawAccountId">
-                    <mat-option *ngFor="let acc of accounts" [value]="acc.id">
-                      {{ acc.accountNumber }} ({{ acc.accountType }}) - \${{ acc.balance | number:'1.2-2' }}
-                    </mat-option>
-                  </mat-select>
-                </mat-form-field>
+                <div class="account-info" *ngIf="account">
+                  <span class="account-label">Account:</span> {{ account.accountNumber }} ({{ account.accountType }}) - Balance: ₹{{ account.balance | number:'1.2-2' }}
+                </div>
                 <mat-form-field appearance="outline" floatLabel="always" class="full-width">
                   <mat-label>Amount</mat-label>
-                  <span matTextPrefix>$&nbsp;</span>
+                  <span matTextPrefix>₹&nbsp;</span>
                   <input matInput type="number" placeholder="0.00" [(ngModel)]="withdrawAmount">
                 </mat-form-field>
                 <button mat-raised-button color="warn" (click)="withdraw()">
@@ -83,21 +73,16 @@ import { AuthService } from '../../services/auth.service';
           <mat-card class="tab-card">
             <mat-card-content>
               <div class="transaction-form">
-                <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>From Account</mat-label>
-                  <mat-select [(ngModel)]="transferFromId">
-                    <mat-option *ngFor="let acc of accounts" [value]="acc.id">
-                      {{ acc.accountNumber }} - \${{ acc.balance | number:'1.2-2' }}
-                    </mat-option>
-                  </mat-select>
-                </mat-form-field>
+                <div class="account-info" *ngIf="account">
+                  <span class="account-label">From Account:</span> {{ account.accountNumber }} - Balance: ₹{{ account.balance | number:'1.2-2' }}
+                </div>
                 <mat-form-field appearance="outline" class="full-width">
                   <mat-label>To Account Number</mat-label>
                   <input matInput [(ngModel)]="transferToNumber" placeholder="Enter destination account number">
                 </mat-form-field>
                 <mat-form-field appearance="outline" floatLabel="always" class="full-width">
                   <mat-label>Amount</mat-label>
-                  <span matTextPrefix>$&nbsp;</span>
+                  <span matTextPrefix>₹&nbsp;</span>
                   <input matInput type="number" placeholder="0.00" [(ngModel)]="transferAmount">
                 </mat-form-field>
                 <button mat-raised-button color="accent" (click)="transfer()">
@@ -125,13 +110,13 @@ import { AuthService } from '../../services/auth.service';
                 </mat-form-field>
                 <mat-form-field appearance="outline">
                   <mat-label>From Date</mat-label>
-                  <input matInput [matDatepicker]="fromPicker" [(ngModel)]="filterFromDate" (dateChange)="applyFilters()">
+                  <input matInput [matDatepicker]="fromPicker" [(ngModel)]="filterFromDate" [max]="maxDate" (dateChange)="applyFilters()">
                   <mat-datepicker-toggle matSuffix [for]="fromPicker"></mat-datepicker-toggle>
                   <mat-datepicker #fromPicker></mat-datepicker>
                 </mat-form-field>
                 <mat-form-field appearance="outline">
                   <mat-label>To Date</mat-label>
-                  <input matInput [matDatepicker]="toPicker" [(ngModel)]="filterToDate" (dateChange)="applyFilters()">
+                  <input matInput [matDatepicker]="toPicker" [(ngModel)]="filterToDate" [min]="filterFromDate" [max]="maxDate" (dateChange)="applyFilters()">
                   <mat-datepicker-toggle matSuffix [for]="toPicker"></mat-datepicker-toggle>
                   <mat-datepicker #toPicker></mat-datepicker>
                 </mat-form-field>
@@ -150,7 +135,9 @@ import { AuthService } from '../../services/auth.service';
                 </ng-container>
                 <ng-container matColumnDef="amount">
                   <th mat-header-cell *matHeaderCellDef>Amount</th>
-                  <td mat-cell *matCellDef="let t">\${{ t.amount | number:'1.2-2' }}</td>
+                  <td mat-cell *matCellDef="let t" [style.color]="(t.transactionType === 'DEPOSIT' || t.transactionType === 'CREDIT') ? '#4caf50' : '#f44336'">
+                    {{ (t.transactionType === 'DEPOSIT' || t.transactionType === 'CREDIT') ? '+' : '-' }}₹{{ t.amount | number:'1.2-2' }}
+                  </td>
                 </ng-container>
                 <ng-container matColumnDef="description">
                   <th mat-header-cell *matHeaderCellDef>Description</th>
@@ -171,24 +158,24 @@ import { AuthService } from '../../services/auth.service';
     .transaction-form { display: flex; flex-direction: column; gap: 8px; max-width: 500px; padding: 16px 0; }
     .filter-row { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; padding: 16px 0; }
     .no-data { text-align: center; color: #666; padding: 32px; }
+    .account-info { background: #fff; padding: 16px; border-radius: 4px; font-size: 14px; color: #333; border: 1px solid rgba(0,0,0,0.38); width: 100%; box-sizing: border-box; line-height: 1.5; }
+    .account-label { font-weight: 500; color: rgba(0,0,0,0.6); }
   `]
 })
 export class TransactionsComponent implements OnInit {
   accounts: any[] = [];
+  account: any = null;
   transactions: any[] = [];
   filteredTransactions: any[] = [];
   historyColumns = ['date', 'type', 'amount', 'description'];
   filterType = 'ALL';
   filterFromDate: Date | null = null;
   filterToDate: Date | null = null;
+  maxDate: Date = new Date();
 
-  depositAccountId: number | null = null;
   depositAmount: number | null = null;
-
-  withdrawAccountId: number | null = null;
   withdrawAmount: number | null = null;
 
-  transferFromId: number | null = null;
   transferToNumber = '';
   transferAmount: number | null = null;
 
@@ -204,7 +191,12 @@ export class TransactionsComponent implements OnInit {
   }
 
   loadAccounts() {
-    this.accountService.getAccountsByCustomer(this.auth.getCustomerId()).subscribe(data => this.accounts = data);
+    this.accountService.getAccountsByCustomer(this.auth.getCustomerId()).subscribe(data => {
+      this.accounts = data;
+      if (data.length > 0) {
+        this.account = data[0];
+      }
+    });
   }
 
   loadTransactions() {
@@ -238,18 +230,18 @@ export class TransactionsComponent implements OnInit {
   }
 
   deposit() {
-    if (!this.depositAccountId) { alert('Please select an account'); return; }
+    if (!this.account) { alert('No account found'); return; }
     if (!this.depositAmount || this.depositAmount <= 0) { alert('Please enter a valid amount greater than 0'); return; }
-    this.transactionService.deposit(this.depositAccountId, this.depositAmount).subscribe({
+    this.transactionService.deposit(this.account.id, this.depositAmount).subscribe({
       next: () => { alert('Deposit successful!'); window.location.reload(); },
       error: (err: any) => { alert(err.error?.message || 'Deposit failed'); window.location.reload(); }
     });
   }
 
   withdraw() {
-    if (!this.withdrawAccountId) { alert('Please select an account'); return; }
+    if (!this.account) { alert('No account found'); return; }
     if (!this.withdrawAmount || this.withdrawAmount <= 0) { alert('Please enter a valid amount greater than 0'); return; }
-    this.transactionService.withdraw(this.withdrawAccountId, this.withdrawAmount).subscribe({
+    this.transactionService.withdraw(this.account.id, this.withdrawAmount).subscribe({
       next: () => { alert('Withdrawal successful!'); window.location.reload(); },
       error: (err: any) => { alert(err.error?.message || 'Withdrawal failed'); window.location.reload(); }
     });
@@ -257,19 +249,18 @@ export class TransactionsComponent implements OnInit {
 
   transfer() {
     const errors: string[] = [];
-    if (!this.transferFromId) errors.push('Please select source account');
+    if (!this.account) errors.push('No account found');
     if (!this.transferToNumber.trim()) errors.push('Please enter destination account number');
     if (!this.transferAmount || this.transferAmount <= 0) errors.push('Please enter a valid amount greater than 0');
     if (errors.length > 0) { alert(errors.join('\n')); return; }
 
     // Self-transfer check
-    const fromAccount = this.accounts.find(a => a.id === this.transferFromId);
-    if (fromAccount && fromAccount.accountNumber === this.transferToNumber.trim()) {
+    if (this.account.accountNumber === this.transferToNumber.trim()) {
       alert('Self-transfer is not allowed. Please enter a different destination account.');
       return;
     }
 
-    this.transactionService.transfer(this.transferFromId!, this.transferToNumber, this.transferAmount!).subscribe({
+    this.transactionService.transfer(this.account.id, this.transferToNumber, this.transferAmount!).subscribe({
       next: () => { alert('Transfer successful!'); window.location.reload(); },
       error: (err: any) => { alert(err.error?.message || 'Transfer failed'); window.location.reload(); }
     });

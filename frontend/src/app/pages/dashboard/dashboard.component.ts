@@ -16,19 +16,13 @@ import { AuthService } from '../../services/auth.service';
     <div class="container">
       <div class="page-header">
         <h2>Welcome, {{ auth.getFullName() }}!</h2>
-        <p>Here's your banking overview</p>
       </div>
 
       <div class="card-grid">
-        <div class="stat-card">
-          <h3>Total Accounts</h3>
-          <div class="value">{{ accounts.length }}</div>
-          <mat-icon>account_balance_wallet</mat-icon>
-        </div>
         <div class="stat-card green">
           <h3>Total Balance</h3>
-          <div class="value">\${{ totalBalance | number:'1.2-2' }}</div>
-          <mat-icon>attach_money</mat-icon>
+          <div class="value">₹{{ totalBalance | number:'1.2-2' }}</div>
+          <mat-icon>₹</mat-icon>
         </div>
         <div class="stat-card orange">
           <h3>Recent Transactions</h3>
@@ -44,7 +38,7 @@ import { AuthService } from '../../services/auth.service';
         </mat-card-header>
         <mat-card-content>
           <div class="action-buttons">
-            <button mat-raised-button color="primary" routerLink="/accounts">
+            <button mat-raised-button color="primary" routerLink="/accounts" *ngIf="accounts.length === 0">
               <mat-icon>add</mat-icon> New Account
             </button>
             <button mat-raised-button color="accent" routerLink="/transactions">
@@ -69,8 +63,8 @@ import { AuthService } from '../../services/auth.service';
                 <strong>{{ t.transactionType }}</strong>
                 <span>{{ t.description }}</span>
               </div>
-              <div class="transaction-amount" [ngClass]="t.transactionType === 'DEPOSIT' ? 'credit' : 'debit'">
-                {{ t.transactionType === 'DEPOSIT' ? '+' : '-' }}\${{ t.amount | number:'1.2-2' }}
+              <div class="transaction-amount" [ngClass]="(t.transactionType === 'DEPOSIT' || t.transactionType === 'CREDIT') ? 'credit' : 'debit'">
+                {{ (t.transactionType === 'DEPOSIT' || t.transactionType === 'CREDIT') ? '+' : '-' }}₹{{ t.amount | number:'1.2-2' }}
               </div>
             </div>
           </div>
@@ -87,6 +81,7 @@ import { AuthService } from '../../services/auth.service';
     .transaction-icon.deposit { background: #4caf50; }
     .transaction-icon.withdrawal { background: #f44336; }
     .transaction-icon.transfer { background: #2196f3; }
+    .transaction-icon.credit { background: #4caf50; }
     .transaction-details { flex: 1; display: flex; flex-direction: column; }
     .transaction-details span { font-size: 12px; color: #666; }
     .transaction-amount { font-weight: 500; font-size: 16px; }
@@ -121,6 +116,7 @@ export class DashboardComponent implements OnInit {
   getTransactionIcon(type: string): string {
     switch (type) {
       case 'DEPOSIT': return 'arrow_downward';
+      case 'CREDIT': return 'arrow_downward';
       case 'WITHDRAWAL': return 'arrow_upward';
       case 'TRANSFER': return 'swap_horiz';
       default: return 'receipt';
