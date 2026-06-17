@@ -1,47 +1,47 @@
 Test Case ID,Test Case Description,Test Case Type,Pre-requisite,Test Data Parameters,Detailed Steps to Execute,Expected Results,Actual Results,Test Result,Tested By
-TC_001,Customer Registration with Valid Data,POSITIVE,"MySQL database is running, Spring Boot backend is running at http://localhost:9090, No existing customer with test email","fullName: John Doe, email: john@example.com, password: password123, phoneNumber: 9876543210, address: 123 Main Street","1. Start backend server (mvnw spring-boot:run)
+TC_001,Customer Registration with Valid Data,POSITIVE,"MySQL database is running, Spring Boot backend is running at http://localhost:9090, No existing customer with test email","fullName: John Doe, email: john@example.com, password: password123, phoneNumber: 9876543210, address: 123 Main Street","1. Start backend server (mvn spring-boot:run)
 2. Send POST request to /api/auth/register
 3. Pass valid customer object with all required fields
 4. Verify response contains customerId
-5. Check database for new customer record","200/201 status code, Response contains message: 'Registration successful', customerId is generated as unique integer, Customer record is created in database with BCrypt encrypted password, Customer role is set to 'CUSTOMER'","","","
+5. Check database for new customer record","200/201 status code, Response contains message: 'Registration successful', customerId is generated as unique integer, Customer record is created in database with BCrypt encrypted password, Customer role is set to 'CUSTOMER'","","",
 TC_002,Customer Registration with Duplicate Email,NEGATIVE,"MySQL database is running, Spring Boot backend is running, Customer with email 'john@example.com' already exists in database","email: john@example.com, fullName: Jane Doe, password: password123, phoneNumber: 9876543211, address: 456 Oak Avenue","1. Start backend server
 2. Send POST request to /api/auth/register with duplicate email
 3. Attempt to register another customer with same email
-4. Observe error response","400 status code, Error message: 'Email already registered: john@example.com', Registration fails, Original customer record is not modified, No duplicate record is created","","","
+4. Observe error response","400 status code, Error message: 'Email already registered: john@example.com', Registration fails, Original customer record is not modified, No duplicate record is created","","",
 TC_003,Customer Login with Valid Credentials,POSITIVE,"MySQL database is running, Backend is running, Customer with email 'john@example.com' and password 'password123' exists in database, Password is BCrypt encrypted","email: john@example.com, password: password123","1. Start backend server
 2. Send POST request to /api/auth/login
 3. Pass valid email and password
 4. Receive JWT token
-5. Verify token format and content","200 status code, Response contains valid JWT token, Response contains customerId, fullName, email, role: 'CUSTOMER', Token can be decoded to verify claims, Token is valid for API requests","","","
+5. Verify token format and content","200 status code, Response contains valid JWT token, Response contains customerId, fullName, email, role: 'CUSTOMER', Token can be decoded to verify claims, Token is valid for API requests","","",
 TC_004,Customer Login with Invalid Password,NEGATIVE,"Backend is running, Customer with email 'john@example.com' exists in database","email: john@example.com, password: wrongpassword123","1. Start backend server
 2. Send POST request to /api/auth/login
 3. Pass valid email but incorrect password
-4. Observe error response","401/400 status code, Error message: 'Invalid email or password', No token is generated, Login fails securely without revealing if email exists","","","
+4. Observe error response","401/400 status code, Error message: 'Invalid email or password', No token is generated, Login fails securely without revealing if email exists","","",
 TC_005,Admin Login with Valid Credentials,POSITIVE,"Backend is running, Database contains admin user with username 'admin' and password 'admin123' (BCrypt encrypted)","username: admin, password: admin123","1. Start backend server
 2. Send POST request to /api/auth/admin/login
 3. Pass valid admin credentials
 4. Receive JWT token with ADMIN role
-5. Verify admin privileges","200 status code, Response contains JWT token with ADMIN role claim, Response contains adminId and fullName, Token allows access to /api/admin endpoints, Admin can view all customers, accounts, and transactions","","","
-TC_006,Create Bank Account with Valid Data,POSITIVE,"Backend is running, Customer with ID 1 exists in database, Database schema is created","customerId: 1, accountType: SAVINGS, aadharNumber: 123456789012, panNumber: ABCDE1234F","1. Authenticate with customer JWT token from TC_003
+5. Verify admin privileges","200 status code, Response contains JWT token with ADMIN role claim, Response contains adminId and fullName, Token allows access to /api/admin endpoints, Admin can view all customers, accounts, and transactions","","",
+TC_006,Create Bank Account with Valid Data,POSITIVE,"Backend is running, Customer with ID 1 exists in database, Database schema is created","customerId: 1, accountType: SAVINGS, aadharNumber: 12345678901, panNumber: ABCDE1234F","1. Authenticate with customer JWT token from TC_003
 2. Send POST request to /api/accounts/customer/1
 3. Pass valid account object with Aadhar and PAN
-4. Verify account is created","201 status code, Response contains accountId, accountNumber starting with 'MAZE' followed by 8 digits, accountType: 'SAVINGS', balance: 0.0, active: true, Account record created in database with unique account number, Customer account association established in database","","","
-TC_007,Create Account - Duplicate Account for Same Customer,NEGATIVE,"Backend is running, Customer with ID 1 already has an account in database","customerId: 1, accountType: SAVINGS, aadharNumber: 987654321098, panNumber: ZYXWV9876A","1. Authenticate with valid JWT token
+4. Verify account is created","201 status code, Response contains accountId, accountNumber starting with 'MAZE' followed by 8 digits, accountType: 'SAVINGS', balance: 0.0, active: true, Account record created in database with unique account number, Customer account association established in database","","",
+TC_007,Create Account - Duplicate Account for Same Customer,NEGATIVE,"Backend is running, Customer with ID 1 already has an account in database","customerId: 1, accountType: SAVINGS, aadharNumber: 9876543210, panNumber: ZYXWV9876A","1. Authenticate with valid JWT token
 2. Send POST request to /api/accounts/customer/1
 3. Attempt to create second account for same customer
-4. Observe error response","400 status code, Error message: 'Customer already has an account. Only one Savings account is allowed per customer.', Second account is not created, First account remains unchanged","","","
+4. Observe error response","400 status code, Error message: 'Customer already has an account. Only one Savings account is allowed per customer.', Second account is not created, First account remains unchanged","","",
 TC_008,Deposit Money into Account,POSITIVE,"Backend is running, Customer authenticated, Account with ID 1 exists, Account balance is 0.0, Account is active","accountId: 1, amount: 5000.00","1. Authenticate with customer JWT token
 2. Send POST request to /api/transactions/deposit
 3. Pass accountId and deposit amount (5000)
 4. Verify transaction is recorded
-5. Check account balance updated","201 status code, Transaction object returned with transactionId, transactionType: 'DEPOSIT', amount: 5000.00, description: 'Deposit of $5000.00', Account balance updated to 5000.00 in database, Transaction record created in database with DEPOSIT type","","","
+5. Check account balance updated","201 status code, Transaction object returned with transactionId, transactionType: 'DEPOSIT', amount: 5000.00, description: 'Deposit of $5000.00', Account balance updated to 5000.00 in database, Transaction record created in database with DEPOSIT type","","",
 TC_009,Withdraw Money - Insufficient Balance,NEGATIVE,"Backend is running, Account with ID 1 exists with balance 100.00, Account is active","accountId: 1, amount: 500.00","1. Authenticate with customer JWT token
 2. Send POST request to /api/transactions/withdraw
 3. Pass accountId and withdrawal amount (500) exceeding balance
-4. Observe error response","400 status code, Error message: 'Insufficient balance. Available: $100.00', Withdrawal is rejected, Account balance remains 100.00, No transaction record is created, Account is not modified","","","
+4. Observe error response","400 status code, Error message: 'Insufficient balance. Available: $100.00', Withdrawal is rejected, Account balance remains 100.00, No transaction record is created, Account is not modified","","",
 TC_010,Transfer Money Between Two Active Accounts,POSITIVE,"Backend is running, Two customer accounts exist - Account 1 (ID 1, balance 5000) and Account 2 (ID 2, balance 1000) with account numbers MAZE00000001 and MAZE00000002, Both accounts are active, Customers authenticated","fromAccountId: 1, toAccountNumber: MAZE00000002, amount: 2000.00","1. Authenticate with customer JWT token for Account 1
 2. Send POST request to /api/transactions/transfer
 3. Pass fromAccountId, toAccountNumber, and transfer amount (2000)
 4. Verify transfer is processed
 5. Check both accounts updated
-6. Verify transaction history","201 status code, Transfer transaction for sender: amount 2000, type: TRANSFER, target account recorded, Credit transaction for receiver: amount 2000, type: CREDIT, From Account balance: 3000.00 (5000 - 2000), To Account balance: 3000.00 (1000 + 2000), Two transaction records created in database, Both accounts linked to transactions with correct types"","",""
+6. Verify transaction history","201 status code, Transfer transaction for sender: amount 2000, type: TRANSFER, target account recorded, Credit transaction for receiver: amount 2000, type: CREDIT, From Account balance: 3000.00 (5000 - 2000), To Account balance: 3000.00 (1000 + 2000), Two transaction records created in database, Both accounts linked to transactions with correct types","",""
