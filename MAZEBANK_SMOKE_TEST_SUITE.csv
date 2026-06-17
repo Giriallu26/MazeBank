@@ -1,6 +1,10 @@
 Test Case ID,Test Case Description,Test Case Type,Pre-requisite,Test Data Parameters,Detailed Steps to Execute,Expected Results,Actual Results,Test Result,Tested By
-TC_001,Customer Registration with Email Validation and Form Submission,POSITIVE,"Frontend application running at http://localhost:4200, MySQL backend running at http://localhost:9090, No existing customer with test email, Browser: Chrome/Firefox with Selenium driver initialized","fullName: Rajesh Kumar, email: rajesh.kumar@example.com, password: SecurePass@123, phoneNumber: 9876543210, address: 123 MG Road Bangalore","1. Initialize Selenium WebDriver for Chrome browser
-2. Navigate to http://localhost:4200
+TC_001,Customer Registration with Email Validation and Form Submission,POSITIVE,"Frontend application running at https://maze-bank-beta.vercel.app/, MySQL backend running at http://localhost:9090, No existing customer with email rajesh.kumar@example.com","fullName: 'Rajesh Kumar'
+email: 'rajesh.kumar@example.com'
+password: 'SecurePass@123'
+phoneNumber: '9876543210'
+address: '123 MG Road Bangalore'","1. Open browser and navigate to https://maze-bank-beta.vercel.app/
+2. Navigate to https://maze-bank-beta.vercel.app/
 3. Click on Register link/button
 4. Verify Register page loads with form fields (Full Name, Email, Password, Phone, Address)
 5. Enter fullName: 'Rajesh Kumar' in Full Name field
@@ -32,8 +36,9 @@ TC_001,Customer Registration with Email Validation and Form Submission,POSITIVE,
 ✓ Customer role defaults to 'CUSTOMER'
 ✓ All form fields are validated for required input
 ✓ Multiple registrations with different emails succeed","","",
-TC_002,Customer Login with Invalid Credentials and Error Message Validation,NEGATIVE,"Frontend application running at http://localhost:4200, Backend running, Customer with email 'rajesh.kumar@example.com' and password 'SecurePass@123' exists, Browser with Selenium driver initialized","email: rajesh.kumar@example.com, password: WrongPass@123, invalidEmails: ['rajesh.kumar@domain.com', 'rajesh@example.com', 'nonexistent@example.com']","1. Initialize Selenium WebDriver
-2. Navigate to http://localhost:4200
+TC_002,Customer Login with Invalid Credentials and Error Message Validation,NEGATIVE,"Frontend application running at https://maze-bank-beta.vercel.app/, Backend running, Customer with email 'rajesh.kumar@example.com' exists with password 'SecurePass@123'","email: 'rajesh.kumar@example.com'
+password: 'WrongPass@123' (incorrect)","1. Open browser and navigate to https://maze-bank-beta.vercel.app/
+2. Navigate to https://maze-bank-beta.vercel.app/
 3. Go to Login page or find Login link
 4. Verify Login form loads with Email and Password fields
 5. Enter email: 'rajesh.kumar@example.com' in Email field
@@ -67,8 +72,9 @@ TC_002,Customer Login with Invalid Credentials and Error Message Validation,NEGA
 ✓ Submit on Enter key works (if implemented)
 ✓ Case-insensitive email login works (if implemented)
 ✓ Error message appears in correct location on page","","",
-TC_003,Successful Customer Login and Dashboard Navigation,POSITIVE,"Frontend running at http://localhost:4200, Backend running, Customer with valid credentials exists (rajesh.kumar@example.com / SecurePass@123), Database is accessible","email: rajesh.kumar@example.com, password: SecurePass@123","1. Initialize Selenium WebDriver
-2. Navigate to http://localhost:4200/login
+TC_003,Successful Customer Login and Dashboard Navigation,POSITIVE,"Frontend running at https://maze-bank-beta.vercel.app/, Backend running, Customer with valid credentials exists (rajesh.kumar@example.com / SecurePass@123)","email: 'rajesh.kumar@example.com'
+password: 'SecurePass@123'","1. Open browser and navigate to https://maze-bank-beta.vercel.app/
+2. Navigate to https://maze-bank-beta.vercel.app//login
 3. Verify Login page loads
 4. Enter email: 'rajesh.kumar@example.com'
 5. Enter password: 'SecurePass@123'
@@ -97,25 +103,23 @@ TC_003,Successful Customer Login and Dashboard Navigation,POSITIVE,"Frontend run
 ✓ User icon/avatar displays (if applicable)
 ✓ Timestamp displays correctly
 ✓ Multiple login sessions don't conflict","","",
-TC_004,Create Bank Account with Aadhar and PAN Validation,POSITIVE,"Frontend running, Customer logged in (Rajesh Kumar), Dashboard/Accounts page accessible, No existing account for this customer, Browser with Selenium driver","accountType: SAVINGS, aadharNumber: 123456789012, panNumber: ABCDE1234F","1. Initialize Selenium WebDriver
+TC_004,Create Bank Account with Aadhar and PAN Validation,POSITIVE,"Frontend running, Customer logged in (Rajesh Kumar), Dashboard/Accounts page accessible, No existing account for this customer, Only SAVINGS account type available in the system","aadharNumber: '123456789012' (exactly 12 digits)
+panNumber: 'ABCDE1234F' (format: 5 letters + 4 digits + 1 letter)","1. Login with valid customer credentials
 2. Login with valid customer credentials
 3. Navigate to Accounts page or click 'Create Account' button
-4. Verify Create Account form loads with fields: Account Type, Aadhar Number, PAN Number
-5. Verify Account Type dropdown shows 'SAVINGS' option
-6. Select 'SAVINGS' from Account Type dropdown
-7. Enter aadharNumber: '123456789012' in Aadhar Number field (exactly 12 digits)
-8. Enter panNumber: 'ABCDE1234F' in PAN Number field (format: 5 letters + 4 digits + 1 letter)
-9. Click Submit/Create Account button
-10. Wait for success message or page refresh
-11. Verify success message: 'Account created successfully' or similar
-12. Verify new account appears in Accounts list
-13. Verify account details display: Account Number (MAZE prefix), Account Type: SAVINGS, Balance: 0.00, Status: Active
-14. Verify Aadhar and PAN numbers are stored (not displayed in frontend for security)
-15. Test Aadhar validation: reject if less/more than 12 digits
-16. Test PAN validation: reject if invalid format
-17. Test empty Aadhar field: show 'Aadhar is required'
-18. Test empty PAN field: show 'PAN is required'","✓ Create Account form loads with all required fields
-✓ Account Type dropdown functions correctly
+4. Verify Create Account form loads with fields: Aadhar Number, PAN Number
+5. Enter aadharNumber: '123456789012' in Aadhar Number field (exactly 12 digits)
+6. Enter panNumber: 'ABCDE1234F' in PAN Number field (format: 5 letters + 4 digits + 1 letter)
+7. Click Submit/Create Account button
+8. Wait for success message or page refresh
+9. Verify success message: 'Account created successfully' or similar
+10. Verify new account appears in Accounts list
+11. Verify account details display: Account Number (MAZE prefix), Account Type: SAVINGS, Balance: 0.00, Status: Active
+12. Verify Aadhar and PAN numbers are stored (not displayed in frontend for security)
+13. Test Aadhar validation: reject if less/more than 12 digits
+14. Test PAN validation: reject if invalid format
+15. Test empty Aadhar field: show 'Aadhar is required'
+16. Test empty PAN field: show 'PAN is required'","✓ Create Account form loads with all required fields
 ✓ Aadhar Number field accepts exactly 12 digits
 ✓ PAN Number field accepts correct format (5 letters + 4 digits + 1 letter)
 ✓ Aadhar validation rejects invalid length
@@ -130,7 +134,8 @@ TC_004,Create Bank Account with Aadhar and PAN Validation,POSITIVE,"Frontend run
 ✓ Account status shows 'Active'
 ✓ Account details are retrievable
 ✓ Form clears after successful submission","","",
-TC_005,Deposit Funds and Balance Update Verification,POSITIVE,"Frontend running, Customer logged in, Account created with balance 0.00, Accounts/Transactions page accessible","accountId: Account created in TC_004, depositAmount: 5000.50","1. Initialize Selenium WebDriver
+TC_005,Deposit Funds and Balance Update Verification,POSITIVE,"Frontend running, Customer logged in, Account created with balance 0.00, Accounts/Transactions page accessible","accountId: Account created in TC_004
+depositAmount: '5000.50'","1. Login with valid credentials
 2. Login with valid credentials
 3. Navigate to Transactions page or Accounts page
 4. Click on created account to view details
@@ -165,7 +170,8 @@ TC_005,Deposit Funds and Balance Update Verification,POSITIVE,"Frontend running,
 ✓ Deposit amount validates (must be > 0)
 ✓ Empty amount field shows error
 ✓ Form clears after successful deposit","","",
-TC_006,Withdrawal with Sufficient Balance and Verification,POSITIVE,"Frontend running, Customer logged in, Account with balance 7500.50, Transactions page accessible","accountId: Same account from TC_005, withdrawalAmount: 3500.00","1. Initialize Selenium WebDriver
+TC_006,Withdrawal with Sufficient Balance and Verification,POSITIVE,"Frontend running, Customer logged in, Account with balance 7500.50, Transactions page accessible","accountId: Same account from TC_005
+withdrawalAmount: '3500.00'","1. Login with valid credentials
 2. Login with valid credentials
 3. Navigate to Transactions page
 4. Verify current account balance displays: 7500.50
@@ -199,7 +205,7 @@ TC_006,Withdrawal with Sufficient Balance and Verification,POSITIVE,"Frontend ru
 ✓ Transaction history shows all withdrawals in order
 ✓ Withdrawal amount validates (must be > 0 and <= balance)
 ✓ Form clears after successful withdrawal","","",
-TC_007,Withdrawal with Insufficient Balance Error Handling,NEGATIVE,"Frontend running, Customer logged in, Account with balance 2000.50, Transactions page accessible","accountId: Same account, withdrawalAmount: 3000.00 (exceeds balance)","1. Initialize Selenium WebDriver
+TC_007,Withdrawal with Insufficient Balance Error Handling,NEGATIVE,"Frontend running, Customer logged in, Account with balance 2000.50, Transactions page accessible","accountId: Same account, withdrawalAmount (insufficient): '3000.00'","1. Login with valid credentials
 2. Login with valid credentials
 3. Navigate to Transactions page
 4. Verify current balance: 2000.50
@@ -233,7 +239,9 @@ TC_007,Withdrawal with Insufficient Balance Error Handling,NEGATIVE,"Frontend ru
 ✓ No balance deduction occurs on error
 ✓ Transaction history remains unchanged
 ✓ Balance display is consistent across page navigations","","",
-TC_008,Transfer Between Two Accounts with Balance Verification,POSITIVE,"Frontend running, Two customer accounts exist: Account1 (balance 8000), Account2 (balance 1000), Customer logged in, Transfer page accessible","fromAccountId: Account1, toAccountNumber: Account2 number (MAZE format), transferAmount: 3000.00","1. Initialize Selenium WebDriver
+TC_008,Transfer Between Two Accounts with Balance Verification,POSITIVE,"Frontend running, Two customer accounts exist: Account1 (balance 8000), Account2 (balance 1000), Customer logged in, Transactions page accessible","fromAccountId: Account1
+toAccountNumber: Account2 number
+transferAmount: '3000.00'","1. Login with valid credentials
 2. Login with valid credentials
 3. Verify both accounts are visible in Accounts list
 4. Verify Account1 balance: 8000.00
@@ -269,7 +277,8 @@ TC_008,Transfer Between Two Accounts with Balance Verification,POSITIVE,"Fronten
 ✓ Transaction dates/times are recorded
 ✓ Form clears after successful transfer
 ✓ Both account balances update immediately","","",
-TC_009,Transfer with Invalid Destination Account Handling,NEGATIVE,"Frontend running, Customer logged in, Account with balance 5000, Transfer page accessible","fromAccountId: Valid account, toAccountNumber: 'MAZE99999999' (invalid/non-existent)","1. Initialize Selenium WebDriver
+TC_009,Transfer with Invalid Destination Account Handling,NEGATIVE,"Frontend running, Customer logged in, Account with balance 5000, Transfer page accessible","fromAccountId: Valid account, toAccountNumber (non-existent): 'MAZE99999999'
+transferAmount: '2000.00'","1. Login with valid credentials
 2. Login with valid credentials
 3. Navigate to Transactions/Transfer page
 4. Verify current account balance
@@ -303,8 +312,9 @@ TC_009,Transfer with Invalid Destination Account Handling,NEGATIVE,"Frontend run
 ✓ Balance remains consistent
 ✓ User can attempt valid transfer after failed attempt
 ✓ Form validation works before submission","","",
-TC_010,Admin Dashboard Access and Data Visibility,POSITIVE,"Frontend running at http://localhost:4200, Admin user exists (username: admin, password: admin123), Backend is running, Admin login implemented","adminUsername: admin, adminPassword: admin123","1. Initialize Selenium WebDriver
-2. Navigate to http://localhost:4200
+TC_010,Admin Dashboard Access and Data Visibility,POSITIVE,"Frontend running at https://maze-bank-beta.vercel.app/, Admin user exists (username: admin, password: admin123), Backend is running, Admin login implemented","username: 'admin'
+password: 'admin123'","1. Open browser and navigate to https://maze-bank-beta.vercel.app/
+2. Navigate to https://maze-bank-beta.vercel.app/
 3. Check for Admin Login link or separate admin portal
 4. Click Admin Login or navigate to /admin-login
 5. Verify Admin Login page loads
