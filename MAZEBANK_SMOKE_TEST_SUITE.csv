@@ -1,0 +1,294 @@
+Test Case ID,Test Case Description,Test Case Type,Pre-requisite,Test Data Parameters,Detailed Steps to Execute,Expected Results,Actual Results,Test Result,Tested By
+TC_001,Customer Registration and Login with Email Validation,POSITIVE,"MySQL database is running, Spring Boot backend is running at http://localhost:9090, No existing customer with test email, Email validation service is active","fullName: Rajesh Kumar, email: rajesh.kumar@example.com, password: SecurePass@123, phoneNumber: 9876543210, address: 123 MG Road Bangalore","1. Start backend server (./mvnw spring-boot:run)
+2. Send POST request to /api/auth/register with complete customer data
+3. Verify registration response contains customerId and success message
+4. Query database to confirm customer record with BCrypt encrypted password
+5. Send POST request to /api/auth/login with registered email and password
+6. Verify JWT token is generated and contains customer claims
+7. Decode JWT token and validate claims (email, customerId, role: CUSTOMER)
+8. Send authenticated request to /api/customers/{customerId} using the token
+9. Verify customer data is retrievable and matches registered information
+10. Validate token expiration time is set correctly (e.g., 24 hours)","✓ Registration returns 201 status code
+✓ Response contains customerId (numeric) and message 'Registration successful'
+✓ Password is BCrypt encrypted in database (not plain text)
+✓ Customer role defaults to 'CUSTOMER'
+✓ Login returns 200 status code
+✓ JWT token is valid Bearer token format
+✓ Token contains claims: email, customerId, role, iat, exp
+✓ Token successfully authenticates subsequent API requests
+✓ User profile retrieval returns 200 status with matching customer details
+✓ Token expiration claim is within acceptable range
+✓ Logout/token invalidation is handled properly if implemented","","",
+TC_002,Customer Login with Invalid Credentials and Account Lockout Prevention,NEGATIVE,"Backend is running, Customer with email 'rajesh.kumar@example.com' exists with password 'SecurePass@123', Database connection is active","email: rajesh.kumar@example.com, password: WrongPass@123, incorrectEmails: ['rajesh.kumar@domain.com', 'rajesh@example.com'], nonExistentEmail: 'ghost.user@example.com'","1. Send POST request to /api/auth/login with valid email and wrong password
+2. Observe error response and status code
+3. Verify error message does not reveal whether email exists (security check)
+4. Attempt login 5 times with wrong password in succession
+5. Check if account is locked after multiple failed attempts (if implemented)
+6. Send POST request with non-existent email
+7. Verify response is identical to wrong password scenario (prevents email enumeration)
+8. Attempt login with similar email addresses to registered one
+9. Verify each attempt returns proper error
+10. Test case sensitivity of email field
+11. Wait for account unlock timeout (if lockout is implemented)
+12. Attempt successful login after lockout period","✓ Login returns 401/400 status code
+✓ Error message: 'Invalid email or password' (generic, no info leakage)
+✓ No JWT token is returned
+✓ No session is created
+✓ Response time is consistent (prevents timing attacks)
+✓ Multiple failed attempts do not crash system
+✓ Account lockout implemented (optional): After N attempts, login blocked temporarily
+✓ Email enumeration is prevented (same error for non-existent vs wrong password)
+✓ Email field is case-insensitive (rajesh@example.com = RAJESH@EXAMPLE.COM)
+✓ System logs failed attempts (for audit trail)
+✓ After lockout timeout, user can login successfully
+✓ Password attempt counter resets after successful login","","",
+TC_003,Deposit Funds with Balance Update and Transaction Logging,POSITIVE,"Backend is running, Customer authenticated with valid JWT token, Account with ID 101 exists and is active, Initial account balance is 1000.00, Database transaction logging is enabled","accountId: 101, depositAmount: 5000.50, description: 'Monthly salary deposit', transactionTimestamp: Current system time","1. Authenticate customer and obtain JWT token from TC_001
+2. Verify current account balance using GET /api/accounts/101/balance (expected 1000.00)
+3. Send POST request to /api/transactions/deposit with accountId: 101, amount: 5000.50
+4. Verify response contains Transaction object with all details
+5. Query database to confirm transaction record in transaction table
+6. Verify account balance has been updated: 1000.00 + 5000.50 = 6000.50
+7. Call GET /api/accounts/101/balance endpoint to verify updated balance
+8. Retrieve transaction history via GET /api/transactions/account/101
+9. Verify the deposit transaction appears at the top of history (sorted by date DESC)
+10. Validate transaction fields: transactionType='DEPOSIT', amount=5000.50, description='Deposit of $5000.50'
+11. Verify transaction timestamp is recorded correctly
+12. Test concurrent deposits to same account for race condition handling
+13. Perform another deposit and verify running balance is correct","✓ Deposit returns 201 status code
+✓ Transaction response contains: id, transactionType='DEPOSIT', amount=5000.50, transactionDate, description
+✓ Account balance updated correctly to 6000.50
+✓ Transaction record created in database with correct account_id foreign key
+✓ Transaction appears in account history with latest timestamp
+✓ Balance is atomic update (no partial updates)
+✓ Multiple concurrent deposits handled correctly (no race conditions)
+✓ Transaction date is set to server time (not client time)
+✓ Deposit amount validation passed (amount > 0)
+✓ Active account status verified before deposit
+✓ Account updated_at timestamp is modified
+✓ Running balance calculation is accurate for multiple transactions","","",
+TC_004,Withdrawal with Sufficient Balance and Transaction Integrity,POSITIVE,"Backend is running, Customer authenticated, Account ID 102 exists and is active, Account balance is 10000.00, Sufficient funds available for withdrawal","accountId: 102, withdrawalAmount: 3500.00, Pin: '1234' (if PIN verification exists)","1. Authenticate customer and verify JWT token validity
+2. Check current account balance (expected 10000.00) using GET /api/accounts/102/balance
+3. Send POST request to /api/transactions/withdraw with accountId: 102, amount: 3500.00
+4. Verify withdrawal returns 201 status code and Transaction object
+5. Validate response contains: transactionId, transactionType='WITHDRAWAL', amount=3500.00
+6. Query database to confirm transaction record exists
+7. Verify withdrawal transaction shows description: 'Withdrawal of $3500.00'
+8. Call GET /api/accounts/102/balance to verify new balance: 10000.00 - 3500.00 = 6500.00
+9. Retrieve transaction history and verify withdrawal appears with correct timestamp
+10. Verify account updated_at timestamp has changed
+11. Perform another withdrawal (amount 2000) on same account
+12. Verify running balance: 6500.00 - 2000.00 = 4500.00
+13. Test withdrawal of exact remaining balance
+14. Verify transaction is atomic (no partial withdrawals)","✓ Withdrawal returns 201 status code
+✓ Transaction object contains correct transactionType='WITHDRAWAL'
+✓ Amount deducted is exact (3500.00)
+✓ Account balance updated to 6500.00
+✓ Balance is correctly calculated after multiple withdrawals
+✓ Transaction record created with proper account association
+✓ Withdrawal timestamp is accurate and in server timezone
+✓ Transaction history includes withdrawal with DESC ordering
+✓ Withdrawal is idempotent (same amount multiple times works)
+✓ Account cannot be overdrawn (validation passed)
+✓ PIN verification passed (if implemented)
+✓ Withdrawal amount must be > 0 (validation passed)
+✓ Transaction is logged for audit trail
+✓ Account status remains active after withdrawal","","",
+TC_005,Withdrawal with Insufficient Balance and Error Handling,NEGATIVE,"Backend is running, Customer authenticated, Account ID 103 exists and is active, Account balance is exactly 2000.00, No overdraft facility available","accountId: 103, withdrawalAmount: 3000.00, minimumBalance: 0.00 (if minimum balance rule exists)","1. Authenticate customer and obtain valid JWT token
+2. Verify current account balance using GET /api/accounts/103/balance (expected 2000.00)
+3. Send POST request to /api/transactions/withdraw with accountId: 103, amount: 3000.00
+4. Observe error response and verify status code
+5. Verify error message: 'Insufficient balance. Available: $2000.00'
+6. Query database to confirm NO transaction record was created
+7. Verify account balance remains 2000.00 (no deduction occurred)
+8. Call GET /api/accounts/103/balance to re-confirm balance is unchanged
+9. Test withdrawal of amount equal to balance (should succeed)
+10. After successful full balance withdrawal, test withdrawal on zero balance
+11. Verify appropriate error message for zero balance withdrawal
+12. Verify account status remains active (not locked)
+13. Test withdrawal with negative amount
+14. Test withdrawal with zero amount
+15. Verify error messages are consistent and security-appropriate (no system info leakage)","✓ Withdrawal returns 400 status code (Bad Request)
+✓ Error message: 'Insufficient balance. Available: $2000.00'
+✓ No transaction record is created
+✓ Account balance remains unchanged at 2000.00
+✓ Account status remains ACTIVE
+✓ Withdrawal amount is validated (> 0)
+✓ System does not create partial transactions
+✓ Database is consistent (no orphaned records)
+✓ Negative/zero amount withdrawal rejected with appropriate error
+✓ Balance validation prevents overdraft
+✓ Transaction counter is not incremented
+✓ Account updated_at timestamp is NOT changed
+✓ Error response does not leak system information
+✓ Subsequent valid withdrawal works correctly after failed attempt
+✓ No deadlock or transaction conflicts occur","","",
+TC_006,Transfer Between Two Active Accounts with Dual Transaction Recording,POSITIVE,"Backend is running, Customer A authenticated, Account 201 (balance: 15000.00) and Account 202 (balance: 5000.00) exist and are active, Both accounts owned by different customers (if required), No self-transfer scenario","fromAccountId: 201, toAccountNumber: 'MAZE00000202', transferAmount: 7500.00, description: 'Payment for services'","1. Authenticate Customer A with valid JWT token
+2. Verify Account 201 balance: 15000.00 using GET /api/accounts/201/balance
+3. Verify Account 202 balance: 5000.00 using GET /api/accounts/202/balance
+4. Send POST request to /api/transactions/transfer with fromAccountId: 201, toAccountNumber: MAZE00000202, amount: 7500.00
+5. Verify transfer returns 201 status code
+6. Verify response contains Transaction object for sender with transactionType='TRANSFER'
+7. Query database to confirm TWO transaction records created: TRANSFER (sender) and CREDIT (receiver)
+8. Verify sender transaction: type='TRANSFER', amount=7500.00, targetAccountNumber='MAZE00000202', description='Transfer to MAZE00000202'
+9. Verify receiver transaction: type='CREDIT', amount=7500.00, targetAccountNumber='MAZE00000201', description='Credit from MAZE00000201'
+10. Call GET /api/accounts/201/balance and verify: 15000.00 - 7500.00 = 7500.00
+11. Query account 202 balance (may not be authenticated) from backend and verify: 5000.00 + 7500.00 = 12500.00
+12. Retrieve transaction history for Account 201: GET /api/transactions/account/201
+13. Verify TRANSFER transaction appears in history with correct details
+14. Retrieve transaction history for Account 202: GET /api/transactions/customer/{customerId}
+15. Verify CREDIT transaction appears for recipient account
+16. Test transfer with decimal amounts (e.g., 1234.56)
+17. Verify both timestamps are identical for dual transactions
+18. Test multiple sequential transfers from Account 201
+19. Verify running balance calculations are accurate","✓ Transfer returns 201 status code
+✓ Response contains sender transaction with TRANSFER type
+✓ TWO transaction records created in database (TRANSFER and CREDIT)
+✓ Sender balance: 7500.00 (15000 - 7500)
+✓ Receiver balance: 12500.00 (5000 + 7500)
+✓ Both transactions linked to correct accounts via foreign key
+✓ Sender transaction shows target account number
+✓ Receiver transaction shows source account number
+✓ Transaction timestamps are identical for both records
+✓ Transactions sorted by date DESC in history
+✓ Transfer amount is exact (7500.00, not more/less)
+✓ Both account updated_at timestamps modified
+✓ Transfer validates both accounts are active
+✓ Decimal amounts handled correctly
+✓ Running balance accurate after multiple transfers
+✓ No duplicate transactions created
+✓ Transaction is atomic (both succeed or both fail)","","",
+TC_007,Transfer with Invalid Destination and Account Validation,NEGATIVE,"Backend is running, Customer authenticated, Account 301 exists with balance 8000.00 and is active, Non-existent account number provided","fromAccountId: 301, toAccountNumber: 'MAZE99999999', transferAmount: 2000.00","1. Authenticate customer and obtain JWT token
+2. Verify Account 301 balance: 8000.00 using GET /api/accounts/301/balance
+3. Send POST request to /api/transactions/transfer with fromAccountId: 301, toAccountNumber: MAZE99999999 (invalid), amount: 2000.00
+4. Observe error response and status code
+5. Verify error message: 'Destination account not found: MAZE99999999'
+6. Query database to confirm NO transaction records created (neither TRANSFER nor CREDIT)
+7. Verify Account 301 balance remains 8000.00 (no deduction)
+8. Call GET /api/accounts/301/balance to confirm balance unchanged
+9. Test transfer to a deactivated account (if applicable)
+10. Verify appropriate error for deactivated account
+11. Test self-transfer scenario (fromAccountId = toAccountId)
+12. Verify error message: 'Self-transfer is not allowed'
+13. Test transfer with invalid account ID format
+14. Test transfer with insufficient funds to invalid account
+15. Verify correct error priority (account validation before balance check)","✓ Transfer returns 400 status code
+✓ Error message: 'Destination account not found: MAZE99999999'
+✓ No TRANSFER transaction created
+✓ No CREDIT transaction created
+✓ From Account balance remains 8000.00
+✓ Account updated_at timestamp is NOT changed
+✓ Database has no orphaned records
+✓ Transfer to deactivated account rejected with appropriate error
+✓ Self-transfer explicitly prevented with error message
+✓ Invalid account formats are handled
+✓ Error prioritization is correct (destination validation before balance)
+✓ System does not create partial transactions
+✓ Account status verified before transfer
+✓ No deadlock scenarios occur
+✓ Subsequent valid transfer works correctly after failed attempt","","",
+TC_008,Transfer with Insufficient Balance and Multi-Account Scenario,NEGATIVE,"Backend is running, Customer authenticated, Account 401 (balance: 1500.00) and Account 402 (balance: 500.00) exist and are active","fromAccountId: 401, toAccountNumber: 'MAZE00000402', transferAmount: 2000.00","1. Authenticate customer and obtain JWT token
+2. Verify Account 401 balance: 1500.00 using GET /api/accounts/401/balance
+3. Verify Account 402 balance: 500.00 using GET /api/accounts/402/balance
+4. Send POST request to /api/transactions/transfer with fromAccountId: 401, toAccountNumber: MAZE00000402, amount: 2000.00 (exceeds balance)
+5. Observe error response status code
+6. Verify error message: 'Insufficient balance. Available: $1500.00'
+7. Query database to confirm NO transaction records created for either account
+8. Verify Account 401 balance remains 1500.00
+9. Verify Account 402 balance remains 500.00
+10. Retrieve transaction history for both accounts - verify no new transactions appear
+11. Test transfer of exact account balance (should succeed)
+12. After successful transfer, test withdrawal on zero balance destination
+13. Verify error handling for zero/negative transfer amounts
+14. Test transfer when destination account is inactive
+15. Verify error prioritization (balance vs account status)","✓ Transfer returns 400 status code
+✓ Error message: 'Insufficient balance. Available: $1500.00'
+✓ No TRANSFER transaction created for sender
+✓ No CREDIT transaction created for receiver
+✓ Account 401 balance remains 1500.00
+✓ Account 402 balance remains 500.00
+✓ No partial transfers occurred
+✓ Both account updated_at timestamps unchanged
+✓ Database consistency maintained
+✓ Transaction history remains unaffected
+✓ Subsequent valid transfer of available amount succeeds
+✓ Zero balance destination account can receive transfers
+✓ Invalid transfer amounts (zero/negative) rejected
+✓ Inactive account transfer prevented
+✓ System handles concurrent transfer attempts safely","","",
+TC_009,Admin Dashboard Access and User/Account Data Visibility,POSITIVE,"Backend is running, Admin user with username 'admin' exists in database, Password is 'admin123' (BCrypt encrypted), Admin JWT token functionality is implemented","adminUsername: admin, adminPassword: admin123, jwtSecret: configured in application.properties","1. Start backend server
+2. Send POST request to /api/auth/admin/login with username: admin, password: admin123
+3. Verify admin login returns 200 status code
+4. Verify response contains JWT token with ADMIN role claim
+5. Verify response contains adminId and fullName
+6. Decode JWT token and validate: role='ADMIN', username='admin'
+7. Send GET request to /api/admin/dashboard using admin JWT token
+8. Verify dashboard returns 200 status code with comprehensive stats
+9. Verify dashboard response contains: totalCustomers (count), totalAccounts (count), totalTransactions (count), totalBalance (sum of all accounts)
+10. Send GET request to /api/admin/customers to retrieve all customers
+11. Verify response is array of customer objects with id, fullName, email, phoneNumber, address
+12. Verify PII is properly returned (no masking for admin)
+13. Send GET request to /api/admin/accounts to retrieve all accounts
+14. Verify response contains all accounts with accountNumber, accountType, balance, active status
+15. Send GET request to /api/admin/transactions to retrieve all transactions
+16. Verify response contains transactions from all customers
+17. Validate pagination support (if implemented) with limit and offset parameters
+18. Test admin cannot access with customer JWT token
+19. Verify admin token provides access to all protected admin endpoints
+20. Verify admin can see transaction details including source/destination accounts","✓ Admin login returns 200 status code
+✓ Admin JWT token contains ADMIN role claim
+✓ Token is valid for subsequent API requests
+✓ Admin dashboard returns 200 status code
+✓ Dashboard stats are accurate: totalCustomers, totalAccounts, totalTransactions
+✓ totalBalance is sum of all account balances
+✓ /api/admin/customers endpoint returns array of all customers
+✓ /api/admin/accounts endpoint returns array of all accounts
+✓ /api/admin/transactions endpoint returns array of all transactions
+✓ Customer data includes full information (no masking)
+✓ Account data includes all fields including balance and status
+✓ Transaction data includes source, destination, and amount details
+✓ Pagination parameters work correctly (if implemented)
+✓ Response times are acceptable even with large data sets
+✓ Data is read-only (GET requests only, no modification)
+✓ Admin token has different scope than customer token
+✓ Customer JWT token cannot access /api/admin endpoints (401 Unauthorized)
+✓ All admin endpoints require valid ADMIN role
+✓ Database queries are efficient (proper indexing on stats)","","",
+TC_010,Admin Account Isolation and Role-Based Access Control,NEGATIVE,"Backend is running, Customer and Admin both have accounts, Customer JWT token exists, Admin operations are restricted by role","customerJWT: valid token with role='CUSTOMER', adminJWT: valid token with role='ADMIN', customerId: 1, adminId: 1","1. Authenticate as customer and obtain JWT token with role='CUSTOMER'
+2. Attempt to send GET request to /api/admin/dashboard using customer JWT token
+3. Verify request returns 403 Forbidden or 401 Unauthorized
+4. Verify error message does not leak admin endpoints list
+5. Attempt to send GET request to /api/admin/customers using customer JWT token
+6. Verify request is rejected with appropriate status code
+7. Attempt to send GET request to /api/admin/accounts using customer JWT token
+8. Verify request is rejected
+9. Attempt to send GET request to /api/admin/transactions using customer JWT token
+10. Verify request is rejected
+11. Verify customer can only access their own data: GET /api/accounts/customer/{customerId}
+12. Verify customer can only see their own transactions: GET /api/transactions/customer/{customerId}
+13. Attempt to access another customer's account data using customer JWT
+14. Verify unauthorized access is blocked (403 Forbidden)
+15. Test expired JWT token access to admin endpoints
+16. Verify expired token returns 401 Unauthorized
+17. Test token tampering: modify role claim and attempt admin access
+18. Verify tampered token is rejected (signature validation fails)
+19. Test no JWT token provided to admin endpoint
+20. Verify 401 Unauthorized is returned for missing token","✓ Customer JWT token cannot access /api/admin/dashboard (403)
+✓ Customer JWT token cannot access /api/admin/customers (403)
+✓ Customer JWT token cannot access /api/admin/accounts (403)
+✓ Customer JWT token cannot access /api/admin/transactions (403)
+✓ Error messages are generic (do not leak endpoint info)
+✓ Customer can access only their own accounts
+✓ Customer can access only their own transactions
+✓ Cross-customer access is prevented (customer 1 cannot see customer 2's data)
+✓ Expired JWT token returns 401 Unauthorized
+✓ Token signature validation prevents tampering
+✓ Modified token claims are detected and rejected
+✓ Missing Authorization header returns 401
+✓ Invalid token format returns 401
+✓ Admin token maintains ADMIN role throughout session
+✓ Role is validated on every request
+✓ SQL injection in role field is prevented
+✓ JWT secret is not exposed in error messages
+✓ System logs unauthorized access attempts
+✓ Rate limiting on failed attempts (if implemented)
+✓ CORS headers properly restrict cross-origin admin access","","",
